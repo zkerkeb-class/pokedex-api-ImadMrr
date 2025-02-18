@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "generate-pokemons": "node src/data/generatePokemonsJson.js"
+    "generate-pokemons": "node src/data/generatePokemonsJson.js" 
   },
   "dependencies": {
     "cors": "^2.8.5",
