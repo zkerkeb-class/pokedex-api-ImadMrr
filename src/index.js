@@ -69,6 +69,20 @@ app.get("/api/pokemons", (req, res) => {
   });
 });
 
+//Route GET par ID
+
+app.get("/api/pokemons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const pokemon = pokemonsList.find(pokemon => pokemon.id === id);
+
+  if (!pokemon) {
+    return res.status(404).send({ error: "Pokemon non trouvé" });
+  }
+
+  res.status(200).send(pokemon);
+
+});
+
 // Route GET home
 app.get("/", (req, res) => {
   res.send("bienvenue sur l'API Pokémon");
@@ -78,31 +92,34 @@ app.get("/", (req, res) => {
 // http://localhost:3000/api/create?name=Samos&type=Humain&hp=40&attack=25&defense=25&SpAttack=90&SpDefense=60&speed=150
 app.post("/api/create", (req, res) => {
   
+    const { name, type, HP, Attack, Defense, "Sp. Attack": SpAttack, "Sp. Defense": SpDefense, Speed } = req.body;
 
-    const { name, type, hp, attack, defense, SpAttack, SpDefense, speed} = req.query;
-
-    if (!name || !type || !hp || !attack || !defense || !SpAttack || !SpDefense || !speed) 
+    if (!name || !type || !HP || !Attack || !Defense || !SpAttack || !SpDefense || !Speed)
       return res.status(400).send({ error: "Tous les champs sont requis" });
 
     const newId = getLastId() + 1;
 
     const newPokemon = {
       id: newId,
-      name : {
+      name: {
         english: name,
         japanese: name,
         chinese: name,
         french: name
       },
-      type, 
-      hp, 
-      attack, 
-      defense, 
-      SpAttack, 
-      SpDefense, 
-      speed, 
-      image : "http://localhost:3000/assets/pokemons/" + newId + ".png"
-    };
+      type,
+      base: {
+        HP: HP,
+        Attack: Attack,
+        Defense: Defense,
+        "Sp. Attack": SpAttack,
+        "Sp. Defense": SpDefense,
+        Speed: Speed
+      },
+        image : "http://localhost:3000/assets/pokemons/" + newId + ".png"
+      };
+
+    console.log(req.body);
 
     pokemonsList.push(newPokemon);
     savePokemons();
@@ -157,12 +174,12 @@ app.delete("/api/delete", (req, res) => {
   }
 
    // Supprimer le Pokémon
-   pokemonsList.splice(pokemonIndex, 1);
+   pokemonsList.splice(pokemonIndex, 1);//On peut utiliser .filter()
 
   // Mettre à jour les IDs pour éviter les trous
-  pokemonsList.forEach((pokemon, index) => {
-    pokemon.id = index + 1; //+1 : Pour commencer les id à partir de 1
-  });
+  // pokemonsList.forEach((pokemon, index) => {
+  //   pokemon.id = index + 1; //+1 : Pour commencer les id à partir de 1
+  // });
 
   savePokemons();
 
