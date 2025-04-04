@@ -1,33 +1,11 @@
 [
   {
-    "id": 2,
-    "name": {
-      "english": "Venusaur",
-      "japanese": "フシギバナ",
-      "chinese": "妙蛙花",
-      "french": "Florizarre"
-    },
-    "type": [
-      "Grass",
-      "Poison"
-    ],
-    "base": {
-      "HP": 80,
-      "Attack": 82,
-      "Defense": 83,
-      "Sp. Attack": 100,
-      "Sp. Defense": 100,
-      "Speed": 80
-    },
-    "image": "http://localhost:3000/assets/pokemons/3.png"
-  },
-  {
     "id": 3,
     "name": {
       "english": "Charmander",
       "japanese": "ヒトカゲ",
       "chinese": "小火龙",
-      "french": "Salamèche"
+      "french": "Salahess"
     },
     "type": [
       "Fire"
@@ -40,28 +18,13 @@
       "Sp. Defense": 50,
       "Speed": 65
     },
-    "image": "http://localhost:3000/assets/pokemons/4.png"
-  },
-  {
-    "id": 4,
-    "name": {
-      "english": "Charmeleon",
-      "japanese": "リザード",
-      "chinese": "火恐龙",
-      "french": "Reptincel"
-    },
-    "type": [
-      "Fire"
-    ],
-    "base": {
-      "HP": 58,
-      "Attack": 64,
-      "Defense": 58,
-      "Sp. Attack": 80,
-      "Sp. Defense": 65,
-      "Speed": 80
-    },
-    "image": "http://localhost:3000/assets/pokemons/5.png"
+    "image": "http://localhost:3000/assets/pokemons/4.png",
+    "hp": 39,
+    "attack": 52,
+    "defense": 43,
+    "SpAttack": 60,
+    "SpDefense": 50,
+    "speed": 65
   },
   {
     "id": 5,
@@ -69,7 +32,7 @@
       "english": "Charizard",
       "japanese": "リザードン",
       "chinese": "喷火龙",
-      "french": "Dracaufeu"
+      "french": "Dracaufeu15"
     },
     "type": [
       "Fire",
@@ -83,28 +46,13 @@
       "Sp. Defense": 85,
       "Speed": 100
     },
-    "image": "http://localhost:3000/assets/pokemons/6.png"
-  },
-  {
-    "id": 6,
-    "name": {
-      "english": "Squirtle",
-      "japanese": "ゼニガメ",
-      "chinese": "杰尼龟",
-      "french": "Carapuce"
-    },
-    "type": [
-      "Water"
-    ],
-    "base": {
-      "HP": 44,
-      "Attack": 48,
-      "Defense": 65,
-      "Sp. Attack": 50,
-      "Sp. Defense": 64,
-      "Speed": 43
-    },
-    "image": "http://localhost:3000/assets/pokemons/7.png"
+    "image": "http://localhost:3000/assets/pokemons/6.png",
+    "hp": 78,
+    "attack": 84,
+    "defense": 78,
+    "SpAttack": 109,
+    "SpDefense": 85,
+    "speed": 100
   },
   {
     "id": 7,
@@ -3110,125 +3058,43 @@
   {
     "id": 151,
     "name": {
-      "english": "Samos",
-      "japanese": "Samos",
-      "chinese": "Samos",
-      "french": "Samos"
+      "english": "amadou",
+      "japanese": "amadou",
+      "chinese": "amadou",
+      "french": "amadou"
     },
-    "type": "Humain",
-    "hp": "40",
-    "attack": "25",
-    "defense": "25",
-    "SpAttack": "90",
-    "SpDefense": "60",
-    "speed": "150",
-    "image": "http://localhost:3000/assets/pokemons/152.png"
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 55,
+      "Defense": 40,
+      "Sp. Attack": 60,
+      "Sp. Defense": 50,
+      "Speed": 50
+    },
+    "image": "http://localhost:3000/assets/pokemons/151.png"
   },
   {
     "id": 152,
     "name": {
-      "english": "hamid",
-      "japanese": "hamid",
-      "chinese": "hamid",
-      "french": "hamid"
+      "english": "Hugo",
+      "japanese": "Hugo",
+      "chinese": "Hugo",
+      "french": "Hugo"
     },
     "type": [
-      "Psychic"
+      "Fighting"
     ],
     "base": {
-      "HP": 100,
-      "Attack": 100,
-      "Defense": 100,
-      "Sp. Attack": 100,
-      "Sp. Defense": 100,
-      "Speed": 100
+      "HP": 50,
+      "Attack": 55,
+      "Defense": 40,
+      "Sp. Attack": 60,
+      "Sp. Defense": 50,
+      "Speed": 50
     },
     "image": "http://localhost:3000/assets/pokemons/152.png"
-  },
-  {
-    "id": 153,
-    "name": {
-      "english": "okok",
-      "japanese": "okok",
-      "chinese": "okok",
-      "french": "okok"
-    },
-    "type": [
-      "fire"
-    ],
-    "base": {
-      "HP": 45,
-      "Attack": 45,
-      "Defense": 45,
-      "Sp. Attack": 45,
-      "Sp. Defense": 45,
-      "Speed": 45
-    },
-    "image": "http://localhost:3000/assets/pokemons/153.png"
-  },
-  {
-    "id": 154,
-    "name": {
-      "english": "okok",
-      "japanese": "okok",
-      "chinese": "okok",
-      "french": "okok"
-    },
-    "type": [
-      "fire"
-    ],
-    "base": {
-      "HP": 45,
-      "Attack": 45,
-      "Defense": 45,
-      "Sp. Attack": 45,
-      "Sp. Defense": 45,
-      "Speed": 45
-    },
-    "image": "http://localhost:3000/assets/pokemons/154.png"
-  },
-  {
-    "id": 155,
-    "name": {
-      "english": "okok",
-      "japanese": "okok",
-      "chinese": "okok",
-      "french": "okok"
-    },
-    "type": [
-      "fire"
-    ],
-    "base": {
-      "HP": 45,
-      "Attack": 45,
-      "Defense": 45,
-      "Sp. Attack": 45,
-      "Sp. Defense": 45,
-      "Speed": 45
-    },
-    "image": "http://localhost:3000/assets/pokemons/155.png"
-  },
-  {
-    "id": 156,
-    "name": {
-      "english": "yjy",
-      "japanese": "yjy",
-      "chinese": "yjy",
-      "french": "yjy"
-    },
-    "type": [
-      "fire",
-      "grass",
-      "psy"
-    ],
-    "base": {
-      "HP": 52823,
-      "Attack": 852,
-      "Defense": 528,
-      "Sp. Attack": 52828,
-      "Sp. Defense": 5282,
-      "Speed": 28528
-    },
-    "image": "http://localhost:3000/assets/pokemons/156.png"
   }
 ]

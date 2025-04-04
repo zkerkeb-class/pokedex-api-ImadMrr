@@ -4,6 +4,50 @@ import fs from 'fs';
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { MongoClient } from "mongodb";
+
+
+const mongoURI = "mongodb://localhost:27017"; // Adresse de MongoDB
+const dbName = "PokeApp"; // Nom de la base de données
+const collectionName = "pokemon"; // Collection qui contient les Pokémon
+let db;
+
+// Connexion à MongoDB
+MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(client => {
+    console.log("Connecté à MongoDB");
+    db = client.db(dbName); // Stocker la connexion à la base
+  })
+  .catch(err => console.error("Erreur de connexion :", err));
+
+
+
+/*const PokemonSchema = new mongoose.Schema({
+  id: { type: Number, required: true, unique: true },
+  name: {
+    english: { type: String, required: true },
+    japanese: { type: String, required: true },
+    chinese: { type: String, required: true },
+    french: { type: String, required: true }
+  },
+  type: { type: [String], required: true },
+  base: {
+    HP: { type: Number, required: true },
+    Attack: { type: Number, required: true },
+    Defense: { type: Number, required: true },
+    SpAttack: { type: Number, required: true },
+    SpDefense: { type: Number, required: true },
+    Speed: { type: Number, required: true }
+  },
+  image: { type: String, required: true },
+  imageShiny: { type: String, required: true }
+});
+
+const Pokemon = mongoose.model("Pokemon", PokemonSchema);
+
+module.exports = Pokemon;*/
+
+
 
 
 //JOI pour la validation des données/Blindage
@@ -22,6 +66,12 @@ const PORT = 3000;
 const getLastId = () => {
   return Math.max(...pokemonsList.map(pokemon => pokemon.id));
 };
+
+
+const getFirstId = () => {
+  return Math.min(...pokemonsList.map(pokemon => pokemon.id));
+};
+
 
 // Fonction pour écrire les données mises à jour dans le fichier JSON
 const savePokemons = () => {
@@ -71,7 +121,31 @@ app.get("/api/pokemons", (req, res) => {
 
 //Route GET par ID
 
-app.get("/api/pokemons/:id", (req, res) => {
+app.get("/api/pokemons/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id); // Convertir en nombre
+
+    if (!db) {
+      return res.status(500).send({ error: "Connexion à la base non établie" });
+    }
+
+    // Rechercher le Pokémon dans la collection "pokemons"
+    const pokemon = await db.collection(collectionName).findOne({ id: id });
+
+    if (!pokemon) {
+      return res.status(404).send({ error: "Pokémon non trouvé" });
+    }
+
+    res.status(200).json(pokemon);
+  } catch (error) {
+    console.error("Erreur serveur :", error);
+    res.status(500).send({ error: "Erreur serveur" });
+  }
+});
+
+
+
+/*app.get("/api/pokemons/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const pokemon = pokemonsList.find(pokemon => pokemon.id === id);
 
@@ -81,7 +155,7 @@ app.get("/api/pokemons/:id", (req, res) => {
 
   res.status(200).send(pokemon);
 
-});
+});*/
 
 // Route GET home
 app.get("/", (req, res) => {
@@ -187,6 +261,17 @@ app.delete("/api/delete", (req, res) => {
   message: `Pokemon n° ${id} supprimé`,
   });
 });
+
+
+// Route GET le premier id disponible
+app.get("/api/firstId", (req, res) => {
+  res.status(200).send({
+    firstID : getFirstId()
+
+  });
+});
+
+
 
 
 
