@@ -20,39 +20,6 @@ MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true 
   })
   .catch(err => console.error("Erreur de connexion :", err));
 
-
-
-/*const PokemonSchema = new mongoose.Schema({
-  id: { type: Number, required: true, unique: true },
-  name: {
-    english: { type: String, required: true },
-    japanese: { type: String, required: true },
-    chinese: { type: String, required: true },
-    french: { type: String, required: true }
-  },
-  type: { type: [String], required: true },
-  base: {
-    HP: { type: Number, required: true },
-    Attack: { type: Number, required: true },
-    Defense: { type: Number, required: true },
-    SpAttack: { type: Number, required: true },
-    SpDefense: { type: Number, required: true },
-    Speed: { type: Number, required: true }
-  },
-  image: { type: String, required: true },
-  imageShiny: { type: String, required: true }
-});
-
-const Pokemon = mongoose.model("Pokemon", PokemonSchema);
-
-module.exports = Pokemon;*/
-
-
-
-
-//JOI pour la validation des données/Blindage
-
-
 dotenv.config();
 
 // Lire le fichier JSON
@@ -94,33 +61,26 @@ app.use(express.json());
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
 // Route GET de base
-app.get("/api/pokemons", (req, res) => {
-  res.status(200).send({
-    /*types: [
-      "fire",
-      "water",
-      "grass",
-      "electric",
-      "ice",
-      "fighting",
-      "poison",
-      "ground",
-      "flying",
-      "psychic",
-      "bug",
-      "rock",
-      "ghost",
-      "dragon",
-      "dark",
-      "steel",
-      "fairy",
-    ],*/
-    pokemons: pokemonsList,
-  });
+// Route GET de base
+app.get("/api/pokemons", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(500).send({ error: "Connexion à la base non établie" });
+    }
+
+    // Récupérer tous les Pokémon depuis la collection "pokemon"
+    const pokemons = await db.collection(collectionName).find({}).toArray();
+
+    res.status(200).send({
+      pokemons: pokemons,
+    });
+  } catch (error) {
+    console.error("Erreur serveur :", error);
+    res.status(500).send({ error: "Erreur serveur" });
+  }
 });
 
 //Route GET par ID
-
 app.get("/api/pokemons/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id); // Convertir en nombre
@@ -144,42 +104,36 @@ app.get("/api/pokemons/:id", async (req, res) => {
 });
 
 
-
-/*app.get("/api/pokemons/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const pokemon = pokemonsList.find(pokemon => pokemon.id === id);
-
-  if (!pokemon) {
-    return res.status(404).send({ error: "Pokemon non trouvé" });
-  }
-
-  res.status(200).send(pokemon);
-
-});*/
-
 // Route GET home
 app.get("/", (req, res) => {
   res.send("bienvenue sur l'API Pokémon");
 });
 
 // Route POST créer un Pokemon 
-// http://localhost:3000/api/create?name=Samos&type=Humain&hp=40&attack=25&defense=25&SpAttack=90&SpDefense=60&speed=150
-app.post("/api/create", (req, res) => {
-  
-    const { name, type, HP, Attack, Defense, "Sp. Attack": SpAttack, "Sp. Defense": SpDefense, Speed } = req.body;
+app.post("/api/create", async (req, res) => {
+  try {
+    const { name, image, type, HP, Attack, Defense, "Sp. Attack": SpAttack, "Sp. Defense": SpDefense, Speed } = req.body;
 
-    if (!name || !type || !HP || !Attack || !Defense || !SpAttack || !SpDefense || !Speed)
+    if (!name || !image || !type || !HP || !Attack || !Defense || !SpAttack || !SpDefense || !Speed) {
       return res.status(400).send({ error: "Tous les champs sont requis" });
+    }
 
-    const newId = getLastId() + 1;
+    if (!db) {
+      return res.status(500).send({ error: "Connexion à la base non établie" });
+    }
 
+    // Générer un nouvel ID
+    const lastPokemon = await db.collection(collectionName).find().sort({ id: -1 }).limit(1).toArray();
+    const newId = lastPokemon.length > 0 ? lastPokemon[0].id + 1 : 1;
+
+    // Créer le nouvel objet Pokémon
     const newPokemon = {
       id: newId,
       name: {
         english: name,
         japanese: name,
         chinese: name,
-        french: name
+        french: name,
       },
       type,
       base: {
@@ -188,78 +142,95 @@ app.post("/api/create", (req, res) => {
         Defense: Defense,
         "Sp. Attack": SpAttack,
         "Sp. Defense": SpDefense,
-        Speed: Speed
+        Speed: Speed,
       },
-        image : "http://localhost:3000/assets/pokemons/" + newId + ".png"
-      };
+      image: image,
+    };
 
-    console.log(req.body);
+    // Insérer le Pokémon dans la base de données
+    await db.collection(collectionName).insertOne(newPokemon);
 
-    pokemonsList.push(newPokemon);
-    savePokemons();
-  
     res.status(200).send({
       message: "Pokemon créé avec succès",
-      pokemons: pokemonsList,
+      pokemon: newPokemon,
     });
-  });
+  } catch (error) {
+    console.error("Erreur lors de la création du Pokémon :", error);
+    res.status(500).send({ error: "Erreur serveur" });
+  }
+});
 
 // Route PUT Met à jour un pokemon existant
-app.put("/api/update", (req, res) => {
-  const { id, name, type, hp, attack, defense, SpAttack, SpDefense, speed } = req.body;
+app.put("/api/update", async (req, res) => {
+  try {
+    const { id, name, type, base, image } = req.body;
 
-  if (!id) {
-    return res.status(400).send({ error: "L'ID est requis" });
+    console.log("LOOK", base)
+
+    if (!id) {
+      return res.status(400).send({ error: "L'ID est requis" });
+    }
+
+    if (!db) {
+      return res.status(500).send({ error: "Connexion à la base non établie" });
+    }
+
+    // Construire l'objet de mise à jour
+    const updateFields = {};
+    if (name) updateFields["name"] = name;
+    if (type) updateFields["type"] = type;
+    if (base) updateFields["base"] = base;
+    if (image) updateFields["image"] = image;
+
+    // Rechercher et mettre à jour le Pokémon dans la base de données
+    const updatedPokemon = await db.collection(collectionName).findOneAndUpdate(
+      { id: parseInt(id) }, // Filtrer par ID
+      { $set: updateFields }, // Mettre à jour les champs spécifiés
+      { returnDocument: "after" } // Retourner le document mis à jour
+    );
+
+    /*if (!updatedPokemon.value) {
+      return res.status(404).send({ error: "Pokemon non trouvé" });
+    }*/
+
+    res.status(200).send({
+      message: `Pokemon n° ${id} mis à jour avec succès`,
+      pokemon: updatedPokemon.value,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du Pokémon :", error);
+    res.status(500).send({ error: "Erreur serveur" });
   }
-
-  const pokemon = pokemonsList.find(p => p.id === parseInt(id));
-  if (!pokemon) {
-    return res.status(404).send({ error: "Pokemon non trouvé" });
-  }
-
-  if (name) pokemon.name = { ...pokemon.name, ...name };
-  if (type) pokemon.type = type;
-  if (hp) pokemon.hp = hp;
-  if (attack) pokemon.attack = attack;
-  if (defense) pokemon.defense = defense;
-  if (SpAttack) pokemon.SpAttack = SpAttack;
-  if (SpDefense) pokemon.SpDefense = SpDefense;
-  if (speed) pokemon.speed = speed;
-
-  savePokemons();
-
-  res.status(200).send({
-  message: `Pokemon n° ${id} mis à jour avec succès`,
-    pokemons: pokemon,
-  });
 });
 
 // Route DELETE supprime un pokemon 
-app.delete("/api/delete", (req, res) => {
-  const {id} = req.body;
+// Route DELETE supprime un pokemon 
+app.delete("/api/delete", async (req, res) => {
+  try {
+    const { id } = req.body;
 
-  if (!id) {
-    return res.status(400).send({ error: "L'ID est requis" });
+    if (!id) {
+      return res.status(400).send({ error: "L'ID est requis" });
+    }
+
+    if (!db) {
+      return res.status(500).send({ error: "Connexion à la base non établie" });
+    }
+
+    // Supprimer le Pokémon de la base de données
+    const result = await db.collection(collectionName).deleteOne({ id: parseInt(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ error: "Pokemon non trouvé" });
+    }
+
+    res.status(200).send({
+      message: `Pokemon n° ${id} supprimé avec succès`,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du Pokémon :", error);
+    res.status(500).send({ error: "Erreur serveur" });
   }
-
-  const pokemonIndex = pokemonsList.findIndex(p => p.id === parseInt(id));
-  if (pokemonIndex === -1) {
-    return res.status(404).send({ error: "Pokemon non trouvé" });
-  }
-
-   // Supprimer le Pokémon
-   pokemonsList.splice(pokemonIndex, 1);//On peut utiliser .filter()
-
-  // Mettre à jour les IDs pour éviter les trous
-  // pokemonsList.forEach((pokemon, index) => {
-  //   pokemon.id = index + 1; //+1 : Pour commencer les id à partir de 1
-  // });
-
-  savePokemons();
-
-  res.status(200).send({
-  message: `Pokemon n° ${id} supprimé`,
-  });
 });
 
 
@@ -273,6 +244,76 @@ app.get("/api/firstId", (req, res) => {
 
 
 
+/** COMBAT */
+app.post('/api/saveCombat', async (req, res) => {
+  const { first, second } = req.body;
+
+  try {
+    const combatData = {
+      first,
+      second,
+    };
+
+    await db.collection('combat').insertOne(combatData);
+    res.status(200).send({ message: 'Combat enregistré avec succès !' });
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement du combat :', error);
+    res.status(500).send({ error: 'Erreur lors de l\'enregistrement du combat.' });
+  }
+});
+
+
+
+app.put('/api/updateHP', async (req, res) => {
+  const { id, newHP } = req.body;
+
+  try {
+    await db.collection('combat').updateOne(
+      { 'first.id': id },
+      { $set: { 'first.base.HP': newHP } }
+    );
+
+    await db.collection('combat').updateOne(
+      { 'second.id': id },
+      { $set: { 'second.base.HP': newHP } }
+    );
+
+    res.status(200).send({ message: 'PV mis à jour avec succès !' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des PV :', error);
+    res.status(500).send({ error: 'Erreur lors de la mise à jour des PV.' });
+  }
+});
+
+
+// Endpoint pour récupérer l'image "versus"
+app.get('/api/getVersusImage', async (req, res) => {
+  try {
+    const combat = await db.collection('combat').findOne({}, { projection: { versus: 1 } }); // Récupère uniquement le champ "versus"
+    if (!combat || !combat.versus) {
+      return res.status(404).send({ error: 'Image "versus" non trouvée.' });
+    }
+    res.status(200).send({ versus: combat.versus });
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'image "versus" :', error);
+    res.status(500).send({ error: 'Erreur lors de la récupération de l\'image "versus".' });
+  }
+});
+
+
+//QUIZZ
+
+// Endpoint pour récupérer les questions du quiz
+app.get('/api/getQuizzQuestions', async (req, res) => {
+  try {
+    const questions = await db.collection('quizz').find().toArray();
+    //console.log(questions);
+    res.status(200).send(questions);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des questions :', error);
+    res.status(500).send({ error: 'Erreur lors de la récupération des questions.' });
+  }
+});
 
 
 // Démarrage du serveur
