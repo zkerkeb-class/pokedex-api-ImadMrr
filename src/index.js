@@ -5,6 +5,26 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
+import jwt from 'jsonwebtoken';
+
+
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Accès non autorisé' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token invalide' });
+    }
+
+    req.user = user; // Ajouter les informations de l'utilisateur à la requête
+    next();
+  });
+};
 
 
 const mongoURI = "mongodb://localhost:27017"; // Adresse de MongoDB
@@ -110,7 +130,7 @@ app.get("/", (req, res) => {
 });
 
 // Route POST créer un Pokemon 
-app.post("/api/create", async (req, res) => {
+app.post("/api/create", authenticateToken, async (req, res) => {
   try {
     const { name, image, type, HP, Attack, Defense, "Sp. Attack": SpAttack, "Sp. Defense": SpDefense, Speed } = req.body;
 
@@ -161,7 +181,7 @@ app.post("/api/create", async (req, res) => {
 });
 
 // Route PUT Met à jour un pokemon existant
-app.put("/api/update", async (req, res) => {
+app.put("/api/update", authenticateToken, async (req, res) => {
   try {
     const { id, name, type, base, image } = req.body;
 
@@ -205,7 +225,7 @@ app.put("/api/update", async (req, res) => {
 
 // Route DELETE supprime un pokemon 
 // Route DELETE supprime un pokemon 
-app.delete("/api/delete", async (req, res) => {
+app.delete("/api/delete", authenticateToken, async (req, res) => {
   try {
     const { id } = req.body;
 
@@ -314,6 +334,73 @@ app.get('/api/getQuizzQuestions', async (req, res) => {
     res.status(500).send({ error: 'Erreur lors de la récupération des questions.' });
   }
 });
+
+
+
+//Token JWT
+
+
+const JWT_SECRET = 'iozahdife897g78YGUBZ987YEGUbsuyzj^pldzmù..'; // Clé secrète pour signer les tokens JWT
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await db.collection('users').findOne({ username });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Vérifier le mot de passe
+    const isPasswordValid = await db.collection('users').findOne({ password });
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Mot de passe incorrect' });
+    }
+
+    // Générer un token JWT
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error('Erreur lors de la connexion :', error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+});
+
+
+
+
+// Route pour shiny
+
+// Nouvelle route pour récupérer l'image shiny
+app.get("/api/pokemons/:id/shiny", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (!db) {
+      return res.status(500).send({ error: "Connexion à la base non établie" });
+    }
+
+    const pokemon = await db.collection(collectionName).findOne({ id: id });
+
+    if (!pokemon) {
+      return res.status(404).send({ error: "Pokémon non trouvé" });
+    }
+
+    if (!pokemon.imageShiny) {
+      return res.status(204).send(); // Pas de contenu shiny
+    }
+
+    res.status(200).send({ imageShiny: pokemon.imageShiny });
+  } catch (error) {
+    console.error("Erreur serveur :", error);
+    res.status(500).send({ error: "Erreur serveur" });
+  }
+});
+
+
+
 
 
 // Démarrage du serveur
