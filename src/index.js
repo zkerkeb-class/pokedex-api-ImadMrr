@@ -7,7 +7,8 @@ import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
 import jwt from 'jsonwebtoken';
 
-
+// Collection pour les favoris
+const favoritesCollection = 'favorites';
 
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization'];
@@ -400,7 +401,38 @@ app.get("/api/pokemons/:id/shiny", async (req, res) => {
 });
 
 
+// Route POST pour ajouter/supprimer un favori
+app.post('/api/favorites', async (req, res) => {
+  const { id } = req.body;
 
+  try {
+    const existingFavorite = await db.collection(favoritesCollection).findOne({ id });
+
+    if (existingFavorite) {
+      // Supprimer le favori s'il existe déjà
+      await db.collection(favoritesCollection).deleteOne({ id });
+      return res.status(200).json({ isFavorite: false });
+    } else {
+      // Ajouter le favori
+      await db.collection(favoritesCollection).insertOne({ id });
+      return res.status(200).json({ isFavorite: true });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la gestion des favoris :', error);
+    res.status(500).json({ error: 'Erreur lors de la gestion des favoris' });
+  }
+});
+
+// Route GET pour récupérer tous les favoris
+app.get('/api/favorites', async (req, res) => {
+  try {
+    const favorites = await db.collection(favoritesCollection).find().toArray();
+    res.status(200).json({ favorites });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des favoris :', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des favoris' });
+  }
+});
 
 
 // Démarrage du serveur
